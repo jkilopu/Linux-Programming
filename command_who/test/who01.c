@@ -7,7 +7,7 @@
 #include <time.h>
 #define SIZE 4096
 void show_info(struct utmp *putmp);
-char* transfer_time(int32_t timeval);
+char *transfer_time(int32_t timeval);
 int main(void)
 {
     int fd, reclen = sizeof(struct utmp);
@@ -34,10 +34,10 @@ int main(void)
 void show_info(struct utmp *putmp)
 {
     if (putmp != NULL)
-            printf("%-10.10s %-10.10s %s", putmp->ut_user, putmp->ut_line, transfer_time(putmp->ut_time));
+        printf("%-10.10s %-10.10s %s", putmp->ut_user, putmp->ut_line, transfer_time(putmp->ut_time));
 }
 // 借助中间变量及升级，使ctime的参数类型符合
-char* transfer_time(int32_t timeval)
+char *transfer_time(int32_t timeval)
 {
     time_t tmp = timeval;
     return ctime(&tmp) + 4;
