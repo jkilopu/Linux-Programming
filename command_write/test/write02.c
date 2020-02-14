@@ -1,16 +1,19 @@
 /* write02.c - 
  * improvement: 1. support write through user name and each tty
- *              2. 
+ *              2. add welcome message with date
  * mistake: 1. fread()和read()均会自动偏移，我不知道...（没从write01中看出来）
  *          2. fread()的返回值不是读取字节的大小，而是读取的个数
  *          3. 判断条件总是搞来搞去，弄不清（或许在纸上画一下会好一些）
- * */
+ *          4. 括号打好啊！（=的优先级比==低!!!）
+ *          4. 很多时候还是没注意到细节啊！
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <utmp.h>
+#include <time.h>
 
 #define BUFSIZE 4096
 
@@ -20,10 +23,10 @@ int main(int argc, char *argv[])
 {
     struct utmp info;
     FILE *fp_utmp;
-    int fd_tty;
+    int fd_tty = 555;
     int utsize = sizeof(struct utmp);
-    char dev[16] = "/dev/", mesg[BUFSIZE];
     int is_found = 999; /* 记得初始化啊！！！ */
+    char dev[16] = "/dev/", mesg[BUFSIZE];
 
     // open utmp file
     if ((fp_utmp = fopen(UTMP_FILE, "r")) == NULL)
@@ -65,7 +68,7 @@ int main(int argc, char *argv[])
         if (is_found == 0)
         {
             // open terminal
-            if ((fd_tty = open(strncat(dev, info.ut_line, 10), O_WRONLY) == -1))
+            if (((fd_tty = open(strncat(dev, info.ut_line, 10), O_WRONLY)) == -1)) /* 括号写清楚阿啊啊啊啊啊啊啊啊啊啊！*/
                 oops("Can't open ", dev);
         }
         else
@@ -74,10 +77,13 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
     }
-    // send message
+    // send messages
+    time_t send_time = time(NULL);
+    dprintf(fd_tty, "\nMessage from ... on ... at %s", ctime(&send_time));    /* welcome message*/
     while (fgets(mesg, BUFSIZ, stdin) != NULL)
         if (write(fd_tty, mesg, strlen(mesg)) == EOF)
             break;
+    // close file
     if (fclose(fp_utmp) == -1 || close(fd_tty) == -1)
         oops("Can't close", "");
 
