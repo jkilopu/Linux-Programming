@@ -9,6 +9,9 @@ build
 .vscode/*
 *.json
 
+#core
+core
+
 # Object files
 *.o
 *.ko
