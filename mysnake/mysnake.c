@@ -14,7 +14,10 @@
 // 全局变量（好像信号处理函数不能传参，暂时用着全局变量吧）
 Snake snake;
 Food food;
+int fd;
 int ch;
+ScoreBoard scoreboard;
+struct _board player;
 
 int main(void)
 {
@@ -46,11 +49,45 @@ void setup(void)
     crmode();
     clear();
 
+    // if ((fd = open("RankList", O_APPEND | O_RDONLY)) == -1)
+    //     FatalError("Can't open RankList");
+    // 构建记录板
+    scoreboard = CreateBoard(BOARDLENS);
+    AddPlayer(scoreboard, BOARDLENS);
     srand(time(NULL));
     start();
 }
+// int ReadScoreBoard(int fd, ScoreBoard sb)
+// {
+//     char buf[READN * RECORDSIZE];
+
+// }
+// int Reload(int fd)
+// {
+
+// }
+void AddPlayer(ScoreBoard sb, int length)
+{
+    // 构建记录版
+    // 询问并添加当前玩家信息
+    mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "Your name?");
+    refresh();
+    mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "          ");
+    while (scanf("%s", player.name) > NAMELEN)
+    {
+        addstr("The length of the player name is no more than 9");
+        refresh();
+        addstr("                                               ");
+    }
+    fflush(NULL);
+    strncpy(sb[length - 1].name, player.name, NAMELEN);
+    player.rank = length;
+}
 void start(void)
 {
+    // 画记录版
+    DrawBoard(BOARDLENS);
+    player.rank = DrawRecord(scoreboard, BOARDLENS);
     // 画墙
     DrawBoundary();
     // 构建、画蛇
@@ -62,6 +99,47 @@ void start(void)
     signal(SIGALRM, DetactAndMove);
     // 设置以定时发送信号
     set_ticker(DEFAULT_SPEED);
+}
+ScoreBoard CreateBoard(int length)
+{
+    ScoreBoard sb = (ScoreBoard)calloc(length, RECORDSIZE);
+    if (sb == NULL)
+        FatalError("Out of space!");
+    return sb;
+}
+void DrawBoard(int length)
+{
+    int i;
+    // 标题
+    mvaddstr(1, RIGHT_BONDARY + RECORDLENS / 2 - sizeof(BOARDTITLE) / 2, BOARDTITLE);
+    // 上下边
+    mvaddnstr(0, RIGHT_BONDARY + 1, "____________________", RECORDLENS);
+    mvaddnstr(length + 2, RIGHT_BONDARY + 1, "--------------------", RECORDLENS);
+    // 左右边
+    for (i = 1; i <= length + 1; i++)
+    {
+        mvaddch(i, RIGHT_BONDARY + 1, '|');
+        mvaddch(i, RIGHT_BONDARY + RECORDLENS, '|');
+    }
+    refresh();
+}
+int DrawRecord(ScoreBoard sb, int length)
+{
+    // 排序？
+    qsort(sb, length, RECORDSIZE, Comp);
+    for (int i = 0; i < length; i++)
+    {
+        // 只打印有用户名的用户
+        if (strlen(sb[i].name) == 0)
+            continue;
+        mvaddch(i + 2, RIGHT_BONDARY + 3, i + 1 + '0'); /* 打印排名 */
+        mvaddstr(i + 2, RIGHT_BONDARY + 5, sb[i].name); /* 打印用户名 */
+        // char *str_score = (char *)malloc(SCORELENS * sizeof(char));
+        // snprintf(str_score, SCORELENS, "%d", sb[i].score); /* 整数转字符串（感觉这个方法很奇怪） */
+        // mvaddstr(i + 2, RIGHT_BONDARY + 1 + RECORDLENS - SCORELENS, str_score);
+        mvprintw(i + 2, RIGHT_BONDARY + 1 + RECORDLENS - SCORELENS, "%d", sb[i].score);
+        // free(str_score);
+    }
 }
 void DrawBoundary(void)
 {
@@ -135,12 +213,19 @@ void DetactAndMove(int signum)
     }
     else if (HitFood(snake, food))
     {
+
+        // length increase
+        snake->length++;
         // add the body to tail
         Add(snake->list, snake->list->tail->y + snake->y_dir, snake->list->tail->x + snake->x_dir);
         // remove and delete food
         free(food);
         // reput food
         food = PutFood(food);
+        // 当前用户分数增加
+        scoreboard[player.rank - 1].score += SCORE;
+        // 重画记录
+        DrawRecord(scoreboard, BOARDLENS);
     }
     signal(SIGALRM, DetactAndMove);
 }
@@ -157,9 +242,7 @@ void MoveSnake(Snake s) /* 只操作链表的头和尾实现蛇的移动 */
 }
 bool HitBoundary(Snake s)
 {
-    if (s->list->head->y != 0 && s->list->head->y != LOWER_BONDARY - 1 && s->list->head->x != 0 && s->list->head->x != RIGHT_BONDARY - 1)
-        return false;
-    return true;
+    return (s->list->head->y == 0 || s->list->head->y == LOWER_BONDARY - 1 || s->list->head->x == 0 || s->list->head->x == RIGHT_BONDARY - 1);
 }
 bool HitBody(Snake s)
 {
@@ -173,9 +256,7 @@ bool HitBody(Snake s)
 }
 bool HitFood(Snake s, Food f)
 {
-    if (s->list->head->y == f->y && s->list->head->x == f->x)
-        return true;
-    return false;
+    return (s->list->head->y == f->y && s->list->head->x == f->x); // 只用一行就能判断
 }
 Food PutFood(Food f)
 {
@@ -232,6 +313,10 @@ void DisposeSnake(Snake s)
     free(s->list);
     free(s);
 }
+void DisposeBoard(ScoreBoard sb)
+{
+    free(sb);
+}
 void Restart(void)
 {
     // erase and delete snake
@@ -247,6 +332,12 @@ void wrapup(void)
     set_ticker(0);
     endwin();
     DisposeSnake(snake);
+    DisposeBoard(scoreboard);
     // delete fodd
     free(food);
+}
+/* 给qsort用*/
+int Comp(const void *a, const void *b)
+{
+    return (*(ScoreBoard)a).score > (*(ScoreBoard)b).score ? true : false;
 }
