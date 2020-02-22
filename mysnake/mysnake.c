@@ -11,13 +11,7 @@
  *      2. 如果malloc的大小不对，短时间内可能没问题，最后一定会在某个奇怪的地方segmentation fault
  */
 #include "mysnake.h"
-// 全局变量（好像信号处理函数不能传参，暂时用着全局变量吧）
-Snake snake;
-Food food;
-int fd;
-int ch;
-ScoreBoard scoreboard;
-struct _board player;
+#include "bufferlib.h"
 
 int main(void)
 {
@@ -45,46 +39,44 @@ int main(void)
 void setup(void)
 {
     initscr();
-    noecho();
-    crmode();
     clear();
 
-    // if ((fd = open("RankList", O_APPEND | O_RDONLY)) == -1)
-    //     FatalError("Can't open RankList");
-    // 构建记录板
-    scoreboard = CreateBoard(BOARDLENS);
+    if ((fd_sb = buf_open("RankLists")) == -1) /* 打开记录版 */
+        Error("Can't open RankLists");
+    scoreboard = CreateBoard(BOARDLENS); /* 构建记录板 */
     AddPlayer(scoreboard, BOARDLENS);
     srand(time(NULL));
     start();
 }
-// int ReadScoreBoard(int fd, ScoreBoard sb)
-// {
-//     char buf[READN * RECORDSIZE];
-
-// }
-// int Reload(int fd)
-// {
-
-// }
-void AddPlayer(ScoreBoard sb, int length)
+void AddPlayer(ScoreBoard *sb, int length)
 {
     // 构建记录版
     // 询问并添加当前玩家信息
     mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "Your name?");
-    refresh();
-    mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "          ");
-    while (scanf("%s", player.name) > NAMELEN)
-    {
-        addstr("The length of the player name is no more than 9");
-        refresh();
-        addstr("                                               ");
-    }
-    fflush(NULL);
-    strncpy(sb[length - 1].name, player.name, NAMELEN);
+    echo();
+    nocrmode();
+    scanw("%s", player.name); // 还不知道超过限定怎么解决
+    mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "                              ");
+    strncpy(sb[length - 1]->name, player.name, NAMELEN);
     player.rank = length;
+}
+void ReadScoreBoard(ScoreBoard *sb, int length)
+{
+    ScoreBoard tmp;
+    for (int i = 0; i < length; i++)
+        if ((tmp = buf_next()) != NULL)
+        {
+            free(sb[i]);
+            sb[i] = tmp;
+        }
 }
 void start(void)
 {
+    // 无回显、无缓冲
+    noecho();
+    crmode();
+    // 读取记录
+    ReadScoreBoard(scoreboard, BOARDLENS);
     // 画记录版
     DrawBoard(BOARDLENS);
     player.rank = DrawRecord(scoreboard, BOARDLENS);
@@ -100,45 +92,45 @@ void start(void)
     // 设置以定时发送信号
     set_ticker(DEFAULT_SPEED);
 }
-ScoreBoard CreateBoard(int length)
+ScoreBoard *CreateBoard(int length)
 {
-    ScoreBoard sb = (ScoreBoard)calloc(length, RECORDSIZE);
+    ScoreBoard *sb = (ScoreBoard *)calloc(length, sizeof(ScoreBoard));
     if (sb == NULL)
         FatalError("Out of space!");
+    for (int i = 0; i < length; i++)
+    {
+        sb[i] = (ScoreBoard)calloc(1, sizeof(struct _board));
+        if (sb[i] == NULL)
+            FatalError("Out of space!");
+    }
     return sb;
 }
 void DrawBoard(int length)
 {
-    int i;
     // 标题
     mvaddstr(1, RIGHT_BONDARY + RECORDLENS / 2 - sizeof(BOARDTITLE) / 2, BOARDTITLE);
     // 上下边
     mvaddnstr(0, RIGHT_BONDARY + 1, "____________________", RECORDLENS);
     mvaddnstr(length + 2, RIGHT_BONDARY + 1, "--------------------", RECORDLENS);
     // 左右边
-    for (i = 1; i <= length + 1; i++)
+    for (int i = 1; i <= length + 1; i++)
     {
         mvaddch(i, RIGHT_BONDARY + 1, '|');
         mvaddch(i, RIGHT_BONDARY + RECORDLENS, '|');
     }
     refresh();
 }
-int DrawRecord(ScoreBoard sb, int length)
+int DrawRecord(ScoreBoard *sb, int length)
 {
-    // 排序？
-    qsort(sb, length, RECORDSIZE, Comp);
     for (int i = 0; i < length; i++)
     {
         // 只打印有用户名的用户
-        if (strlen(sb[i].name) == 0)
-            continue;
-        mvaddch(i + 2, RIGHT_BONDARY + 3, i + 1 + '0'); /* 打印排名 */
-        mvaddstr(i + 2, RIGHT_BONDARY + 5, sb[i].name); /* 打印用户名 */
-        // char *str_score = (char *)malloc(SCORELENS * sizeof(char));
-        // snprintf(str_score, SCORELENS, "%d", sb[i].score); /* 整数转字符串（感觉这个方法很奇怪） */
-        // mvaddstr(i + 2, RIGHT_BONDARY + 1 + RECORDLENS - SCORELENS, str_score);
-        mvprintw(i + 2, RIGHT_BONDARY + 1 + RECORDLENS - SCORELENS, "%d", sb[i].score);
-        // free(str_score);
+        if (strlen(sb[i]->name) != 0)
+        {
+            mvaddch(i + 2, RIGHT_BONDARY + 3, i + 1 + '0');                                  /* 打印排名 */
+            mvaddstr(i + 2, RIGHT_BONDARY + 5, sb[i]->name);                                 /* 打印用户名 */
+            mvprintw(i + 2, RIGHT_BONDARY + 1 + RECORDLENS - SCORELENS, "%d", sb[i]->score); /* 移动并在屏幕上格式化输出字符串 */
+        }
     }
 }
 void DrawBoundary(void)
@@ -195,22 +187,7 @@ void DetactAndMove(int signum)
     // show
     refresh();
     if (HitBoundary(snake) || HitBody(snake))
-    {
-        set_ticker(0);
-        // remove food
-        mvaddch(food->y, food->x, BLANK);
-        // game over massage
-        mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "Game Over! ");
-        refresh();
-        sleep(2);
-        mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "Restart?  ");
-        refresh();
-        if ((ch = getchar()) == 'r')
-        {
-            mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "          ");
-            Restart();
-        }
-    }
+        endgame();
     else if (HitFood(snake, food))
     {
 
@@ -223,7 +200,7 @@ void DetactAndMove(int signum)
         // reput food
         food = PutFood(food);
         // 当前用户分数增加
-        scoreboard[player.rank - 1].score += SCORE;
+        scoreboard[player.rank - 1]->score += SCORE;
         // 重画记录
         DrawRecord(scoreboard, BOARDLENS);
     }
@@ -313,31 +290,36 @@ void DisposeSnake(Snake s)
     free(s->list);
     free(s);
 }
-void DisposeBoard(ScoreBoard sb)
+void DisposeBoard(ScoreBoard *sb, int length)
 {
+    for (int i = 0; i < length; i++)
+        free(sb[i]);
     free(sb);
 }
-void Restart(void)
+void WriteRecorde(int fd, ScoreBoard *sb, int length)
 {
-    // erase and delete snake
-    EraseSnake(snake);
-    DisposeSnake(snake);
-    // delete food
-    free(food);
-    // set again
-    start();
+    for (int i = 0; i < length; i++)
+        write(fd, sb[i], sizeof(struct _board));
+}
+void endgame(void)
+{
+    set_ticker(0);                                                              /* time stop */
+    mvaddch(food->y, food->x, BLANK);                                           /* remove food */
+    mvprintw(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 6, "Game Over! q to quit"); /* game over massage */
+    refresh();
 }
 void wrapup(void)
 {
-    set_ticker(0);
     endwin();
+    buf_close();
     DisposeSnake(snake);
-    DisposeBoard(scoreboard);
+    WriteRecorde(fd_sb, scoreboard, BOARDLENS);
+    DisposeBoard(scoreboard, BOARDLENS);
     // delete fodd
     free(food);
 }
 /* 给qsort用*/
 int Comp(const void *a, const void *b)
 {
-    return (*(ScoreBoard)a).score > (*(ScoreBoard)b).score ? true : false;
+    return ((ScoreBoard)a)->score > ((ScoreBoard)b)->score ? true : false;
 }
