@@ -50,7 +50,7 @@ int **create_map(int size)
     int **m;
     m = (int **)malloc(sizeof(int *) * MAPSIZE);
     for (int i = 0; i < size; i++)
-        m[i] = calloc(sizeof(int), MAPSIZE);
+        m[i] = calloc(MAPSIZE, sizeof(int));
     return m;
 }
 void draw_map(int size)
