@@ -1,6 +1,6 @@
 /* 
- * my_shell.c version 0.1
- * 功能： 接受一条命令，并在PATH中寻找程序，执行后死亡
+ * my_shell.c --version 0.2
+ * 功能： 接受一条命令，并在PATH中寻找程序，在收到exit命令前重复上述工作（且能忽略键盘发出的中断信号）
  * 
  * strsep()总结：
  * 1. 传入的必须是指向字符串的指针char*，不能是数组名char[]。
@@ -13,40 +13,62 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <wait.h>
+#include <signal.h>
 #include <string.h>
 
 #define MAX_LENGTH 20
 
+void execute(char **argv);
 char **to_argv(char src[], char seps[]);
 int count_argv(char src[]);
 
 int main(void)
 {
-    pid_t new_pid;
-    char file[MAX_LENGTH];
+    char argbuf[MAX_LENGTH];
     char **argv;
-    char seps[] = " ";
+    char seps[] = " ", exit_str[] = "exit\n";
 
-    /* 从标准输入中获取输入 */
-    fgets(file, MAX_LENGTH, stdin);
-    file[strlen(file) - 1] = '\0';
-    /* 转换为参数列表（同时将file变为{filename + '\0' + ....}）*/
-    argv = to_argv(file, seps);
-
-    /* fork出子程序 */
-    new_pid = fork();
-    if (new_pid == 0)
+    /* 从标准输入读入字符串，并根据其判断是否退出*/
+    while (fgets(argbuf, MAX_LENGTH, stdin) && strcmp(argbuf, exit_str) != 0)
     {
-        execvp(file, argv);
+        argbuf[strlen(argbuf) - 1] = '\0';
+        /* 转换为参数列表 */
+        argv = to_argv(argbuf, seps);
+        /* 执行程序 */
+        execute(argv);
     }
-    else
+
+    return 0;
+}
+/* 执行参数列表中的程序（带命令行参数） */
+void execute(char **argv)
+{
+    pid_t new_pid;
+    int exit_status; // 子进程退出时的状态
+
+    new_pid = fork();
+    /* 根据pid判断子、父进程 */
+    switch (new_pid)
     {
-        wait(NULL);
-        return 0;
+    case -1:
+        perror("fork failed");
+        exit(EXIT_FAILURE);
+        break;
+    case 0:
+        execvp(argv[0], argv);
+        perror("execvp failed");
+        exit(EXIT_FAILURE);
+    default:
+        /* 忽略来自键盘的中断信号 */
+        signal(SIGINT, SIG_IGN);
+        /* 等待子进程并获取子进程信号 */
+        while (wait(&exit_status) != new_pid)
+            ;
+        free(argv);
     }
 }
-char **to_argv(char src[], char seps[])
 /* 分隔原始字符串并返回参数列表（最后需要free） */
+char **to_argv(char src[], char seps[])
 {
     int i = 0, j = 0, num;
     char **argv = NULL, *p = src;
@@ -54,7 +76,7 @@ char **to_argv(char src[], char seps[])
     /* 计算参数个数以便分配空间 */
     num = count_argv(src);
     argv = (char **)malloc((num + 1) * sizeof(char *));
-    /* */
+    /* 分解参数 */
     for (j = 0; j < num; j++)
     {
         argv[j] = strsep(&p, seps); // 新知识：strsep的使用
@@ -63,8 +85,8 @@ char **to_argv(char src[], char seps[])
     argv[j] = NULL;
     return argv;
 }
-int count_argv(char src[])
 /* 计算参数的个数 */
+int count_argv(char src[])
 {
     int i = 0, cnt = 1;
     while (src[i] != '\0')
