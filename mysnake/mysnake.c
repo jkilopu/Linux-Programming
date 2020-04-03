@@ -20,7 +20,7 @@ int main(void)
 {
     setup();
 
-    while ((ch = getch()) != 'q')
+    while ((ch = getchar()) != 'q')
     {
         if (ch == 'w')
             if (snake->y_dir != 1)
@@ -112,7 +112,7 @@ void PrintSnake(Snake s)
 }
 void DetactAndMove(int signum)
 {
-    signal(SIGALRM, SIG_IGN);
+    signal(SIGALRM, SIG_IGN); // 避免重入
     MoveSnake(snake);
     // show
     refresh();
@@ -144,7 +144,8 @@ void DetactAndMove(int signum)
     }
     signal(SIGALRM, DetactAndMove);
 }
-void MoveSnake(Snake s) /* 只操作链表的头和尾实现蛇的移动 */
+/* 只操作链表的头和尾实现蛇的移动 */
+void MoveSnake(Snake s)
 {
     // move head
     InsertHead(s->list, s->list->head->y + s->y_dir, s->list->head->x + s->x_dir);
