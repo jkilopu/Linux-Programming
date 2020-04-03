@@ -30,6 +30,11 @@ int main(void)
         perror("write fail");
         return 0;
     }
+    else
+    {
+        printf("%d\n", fd); // 看一看文件描述符是否相同
+    }
+    
     
     close(fd);
     return 1;
