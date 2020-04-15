@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.10.0)
 
 # 项目名称
-project(write)
+project(who)
 
 #设置输出路径
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR})
