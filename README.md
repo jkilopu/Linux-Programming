@@ -21,6 +21,8 @@ make
 ./bin/mysnake
 ```
 
+---
+
 ## my_shell
 A simple shell can only run commands with some arguments in PATH, version 0.2.
 ### Describtion
