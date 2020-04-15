@@ -48,7 +48,7 @@ void wrapup(void);
 #define RIGHT_BONDARY 100
 #define LOWER_BONDARY 50
 #define DEFAULT_SPEED 100
-#define DEFAULT_LENGTH 20
+#define DEFAULT_LENGTH 5
 #define DEFAULT_BODY 'o'
 #define BLANK ' '
 #define WALL '#'
