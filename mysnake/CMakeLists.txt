@@ -12,4 +12,4 @@ include_directories(./inc)
 aux_source_directory(. source)
 add_executable(mysnake ${source})
 # 添加库啊啊啊啊！！！
-target_link_libraries(mysnake curses)
+target_link_libraries(mysnake ncurses)
