@@ -15,7 +15,7 @@ Help your snake grow longer and longer, maybe you will find a bug in the game.
 * ncurses library
 ### Installation
 ``` bash
-git clone git@github.com:jkilopu/Linux-Programming.git
+git clone https://github.com/jkilopu/Linux-Programming.git
 cd ./Linux-Programming/mysnake
 cmake -Bbuild -H.
 cd ./build
@@ -31,7 +31,7 @@ A simple shell can only run commands with some arguments in PATH, version 0.2.
 Accept a command, find a program in the path, and repeat the above work before receiving the exit command (and ignore the interrupt signal from the keyboard)
 ### Installation
 ``` bash
-git clone git@github.com:jkilopu/Linux-Programming.git
+git clone https://github.com/jkilopu/Linux-Programming.git
 cd ./Linux-Programming/process
 gcc my_shell.c -o my_shell
 ./my_shell
