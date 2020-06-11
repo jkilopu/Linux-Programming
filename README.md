@@ -11,8 +11,10 @@ By eating food, your snake will grow.
 When your snake hit the wall or its body. the game is over.
 Help your snake grow longer and longer, maybe you will find a bug in the game.
 ### Requirements
-* C compiler
+* C/C++ compiler
 * ncurses library
+* cmake
+* make
 ### Installation
 ``` bash
 git clone https://github.com/jkilopu/Linux-Programming.git
