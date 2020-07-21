@@ -1,6 +1,7 @@
 #include "game.h"
 #include "snake.h"
 #include "food.h"
+#include "record.h"
 #include "settings.h"
 #include <stdlib.h>
 #include <signal.h>
@@ -12,6 +13,9 @@
 Snake snake;
 Food food;
 int key;
+FILE *fp_sc_r;
+Record *scoreboard;
+Record current_record;
 
 void setup(void)
 {
@@ -23,8 +27,16 @@ void setup(void)
     srand(time(NULL));
     start();
 }
+
 void start(void)
 {
+    scoreboard = CreateScoreboard(RECORD_MAX_NUM);
+    // 读取记录
+    fp_sc_r = OpenScoreboardFile("score.txt");
+    int num = ReadScoreboard(scoreboard, fp_sc_r);
+    fclose(fp_sc_r);
+    // 显示记录
+    ShowScoreboard(scoreboard, num, RECORD_1ST_Y, RECORD_1ST_X);
     // 画墙
     DrawBoundary();
     // 构建、画蛇
@@ -37,6 +49,7 @@ void start(void)
     // 设置以定时发送信号
     set_ticker(DEFAULT_SPEED);
 }
+
 void DrawBoundary(void)
 {
     int i;
@@ -54,6 +67,7 @@ void DrawBoundary(void)
     }
     refresh();
 }
+
 void DetactAndMove(int signum)
 {
     signal(SIGALRM, SIG_IGN); // 避免重入
@@ -88,6 +102,7 @@ void DetactAndMove(int signum)
     }
     signal(SIGALRM, DetactAndMove);
 }
+
 void Restart(void)
 {
     // erase and delete snake
@@ -98,11 +113,13 @@ void Restart(void)
     // set again
     start();
 }
+
 void wrapup(void)
 {
     set_ticker(0);
     endwin();
     DisposeSnake(snake);
+    DestroyScoreboard(scoreboard, RECORD_MAX_NUM);
     // delete fodd
     free(food);
 }

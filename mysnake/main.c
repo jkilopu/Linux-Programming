@@ -17,7 +17,6 @@
 #include <stdio.h>
 
 extern Snake snake;
-extern Food food;
 extern int key;
 
 int main(void)

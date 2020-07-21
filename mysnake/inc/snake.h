@@ -4,6 +4,9 @@
 #include "list.h"
 #include <stdbool.h>
 
+#define DEFAULT_LENGTH 5
+#define DEFAULT_BODY 'o'
+
 typedef struct _snake
 {
     List *list;

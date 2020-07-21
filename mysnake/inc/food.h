@@ -4,6 +4,8 @@
 #include "snake.h"
 #include <stdbool.h>
 
+#define FOOD '*'
+
 typedef struct _food
 {
     int y, x;
