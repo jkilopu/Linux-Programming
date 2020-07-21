@@ -1,5 +1,8 @@
 #include "list.h"
 #include "fatal.h"
+#include <stdio.h>
+#include <stdlib.h>
+
 void Add(List *pList, ElementType y, ElementType x)
 {
     Node *p;
