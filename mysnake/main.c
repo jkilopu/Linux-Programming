@@ -15,6 +15,7 @@
 #include "food.h"
 #include "fatal.h"
 #include <stdio.h>
+#include <unistd.h>
 
 extern Snake snake;
 extern int key;
@@ -37,6 +38,7 @@ int main(void)
         if (key == 'd')
             if (snake->x_dir != -1)
                 TurnRight(snake);
+        sleep(100);
     }
 
     wrapup();
