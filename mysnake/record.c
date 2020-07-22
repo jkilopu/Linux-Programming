@@ -3,69 +3,45 @@
 #include "fatal.h"
 #include <ncurses.h>
 #include <stdio.h>
+#include <string.h>
 
-Record *CreateScoreboard(int num)
+Record CreateRecord(char *name)
 {
-    Record *sc;
-    if ((sc = (Record *)malloc(sizeof(Record) * num)) == NULL)
+    Record new_record;
+    if ((new_record = (Record) malloc(sizeof(struct _record))) == NULL)
         FatalError("Out of space!");
-    for (int i = 0; i < num; i++)
-        if ((sc[i] = (Record)malloc(sizeof(struct _record))) == NULL)
-            FatalError("Out of space!");
-    return sc;
+    strncpy(new_record->name, name, NAME_MAX_LENGTH + 1);
+    new_record->score = 0;
+    return new_record;
 }
 
-void ShowRecord(Record r, int y, int x)
+void ShowRecord(Record r, unsigned int number, int y, int x)
 {
     char sNum[NUM_MAX_LENGTH + 1];
-    snprintf(sNum, NUM_MAX_LENGTH + 1, "%u", r->num);
+    snprintf(sNum, NUM_MAX_LENGTH + 1, "%u", number);
+    mvaddnstr(y, x, "        ", NUM_MAX_LENGTH + 1);
     mvaddnstr(y, x, sNum, NUM_MAX_LENGTH + 1);
 
+    mvaddnstr(y, x + NUM_MAX_LENGTH + 1, "                        ", NAME_MAX_LENGTH + 1);
     mvaddnstr(y, x + NUM_MAX_LENGTH + 1, r->name, NAME_MAX_LENGTH + 1); // +1?
 
     char sScore[SCORE_MAX_LENGTH + 1];
     snprintf(sScore, SCORE_MAX_LENGTH + 1, "%u", r->score);
+    mvaddnstr(y, x + NUM_MAX_LENGTH + NAME_MAX_LENGTH + 2, "                ", SCORE_MAX_LENGTH + 1);
     mvaddnstr(y, x + NUM_MAX_LENGTH + NAME_MAX_LENGTH + 2, sScore, SCORE_MAX_LENGTH + 1);
-}
-
-void ShowScoreboard(Record sc[], int num, int y, int x)
-{
-    for (int i = 0; i < num; i++)
-        ShowRecord(sc[i], y + i, x);
 }
 
 int ReadRecord(Record r, FILE *fp)
 {
-    return fscanf(fp, "%u %s %u", &r->num, r->name, &r->score);
+    return fscanf(fp, "%s %u", r->name, &r->score);
 }
 
-FILE *OpenScoreboardFile(const char *file_name)
-{
-    FILE *fp = fopen(file_name, "r");
-    if (fp == NULL)
-        FatalError("Open failed");
-    return fp;
-}
-
-int ReadScoreboard(Record sc[], FILE *fp)
-{
-    int num = 0;
-    while (num < RECORD_MAX_NUM)
-    {
-        int status = ReadRecord(sc[num], fp);
-        if (status != 3)
-            if (status != EOF)
-                FatalError("Incomplete data");
-            else
-                break;
-        num++;
-    }
-    return num;
-}
-
-void DestroyScoreboard(Record sc[], int num)
+Record FindRecord(Record rs[], int num, char name[])
 {
     for (int i = 0; i < num; i++)
-        free(sc[num]);
-    free(sc);
+    {
+        if (strcmp(rs[i]->name, name) == 0)
+            return rs[i];
+    }
+    return NULL;
 }

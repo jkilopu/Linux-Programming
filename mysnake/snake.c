@@ -32,7 +32,6 @@ void PrintSnake(Snake s)
         mvaddch(p->y, p->x, s->symbol);
         p = p->next;
     }
-    refresh();
 }
 /* 只操作链表的头和尾实现蛇的移动 */
 void MoveSnake(Snake s)

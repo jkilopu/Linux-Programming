@@ -20,6 +20,5 @@ Food PutFood(Food f)
     f->x = rand() % (RIGHT_BONDARY - 2) + 1;
     f->symbol = FOOD;
     mvaddch(f->y, f->x, f->symbol);
-    refresh();
     return f;
 }

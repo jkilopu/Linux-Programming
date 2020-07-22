@@ -2,7 +2,9 @@
 #include "snake.h"
 #include "food.h"
 #include "record.h"
+#include "scoreboard.h"
 #include "settings.h"
+#include "fatal.h"
 #include <stdlib.h>
 #include <signal.h>
 #include <time.h>
@@ -13,16 +15,24 @@
 Snake snake;
 Food food;
 int key;
-FILE *fp_sc_r;
-Record *scoreboard;
+Scoreboard scoreboard;
 Record current_record;
 
 void setup(void)
 {
     initscr();
-    noecho();
     crmode();
     clear();
+
+    scoreboard = CreateScoreboard(RECORD_MAX_NUM);
+    // 读取记录
+    ReadScoreboard(scoreboard);
+    // 玩家登录
+    Login();
+    noecho();
+    // 显示记录
+    int number = ShowScoreboardWithCurrentRecord(scoreboard, current_record, RECORD_1ST_Y, RECORD_1ST_X);
+    ShowRecord(current_record, number, RECORD_1ST_Y + scoreboard->size + 3, RECORD_1ST_X);
 
     srand(time(NULL));
     start();
@@ -30,13 +40,6 @@ void setup(void)
 
 void start(void)
 {
-    scoreboard = CreateScoreboard(RECORD_MAX_NUM);
-    // 读取记录
-    fp_sc_r = OpenScoreboardFile("score.txt");
-    int num = ReadScoreboard(scoreboard, fp_sc_r);
-    fclose(fp_sc_r);
-    // 显示记录
-    ShowScoreboard(scoreboard, num, RECORD_1ST_Y, RECORD_1ST_X);
     // 画墙
     DrawBoundary();
     // 构建、画蛇
@@ -44,10 +47,24 @@ void start(void)
     PrintSnake(snake);
     // 放食物
     food = PutFood(food);
+    // 刷新
+    refresh();
     // 设置信号
     signal(SIGALRM, DetactAndMove);
     // 设置以定时发送信号
     set_ticker(DEFAULT_SPEED);
+}
+
+void Login(void)
+{
+    char name[NAME_MAX_LENGTH + 1];
+    mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "Your name: ");
+    refresh();
+    getnstr(name, NAME_MAX_LENGTH + 1);
+    mvaddnstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "                                              ", NAME_MAX_LENGTH + 11);
+    mvaddstr(RECORD_1ST_Y + scoreboard->size + 2, RECORD_1ST_X, "You:");
+    refresh();
+    current_record = CreateRecord(name);
 }
 
 void DrawBoundary(void)
@@ -85,7 +102,10 @@ void DetactAndMove(int signum)
         sleep(2);
         mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "Restart?  ");
         refresh();
-        if ((key = getchar()) == 'r')
+        do
+            key = getchar();
+        while (key != 'r' && key != 'q');
+        if (key == 'r')
         {
             mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "          ");
             Restart();
@@ -99,12 +119,23 @@ void DetactAndMove(int signum)
         free(food);
         // reput food
         food = PutFood(food);
+        // Score increase
+        if (current_record->score + 10 < SCORE_MAX)
+            current_record->score += 10;
+        // Sort and show
+        int number = ShowScoreboardWithCurrentRecord(scoreboard, current_record, RECORD_1ST_Y, RECORD_1ST_X);
+        ShowRecord(current_record, number, RECORD_1ST_Y + scoreboard->size + 3, RECORD_1ST_X);
+        refresh();
     }
     signal(SIGALRM, DetactAndMove);
 }
 
 void Restart(void)
 {
+    current_record->score = 0;
+    int number = ShowScoreboardWithCurrentRecord(scoreboard, current_record, RECORD_1ST_Y, RECORD_1ST_X);
+    ShowRecord(current_record, number, RECORD_1ST_Y + scoreboard->size + 3, RECORD_1ST_X);
+    refresh();
     // erase and delete snake
     EraseSnake(snake);
     DisposeSnake(snake);
@@ -119,7 +150,8 @@ void wrapup(void)
     set_ticker(0);
     endwin();
     DisposeSnake(snake);
-    DestroyScoreboard(scoreboard, RECORD_MAX_NUM);
+    DestroyScoreboard(scoreboard);
+    free(current_record);
     // delete fodd
     free(food);
 }
