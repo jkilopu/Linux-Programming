@@ -11,9 +11,9 @@ bool HitFood(Snake s, Food f)
         return true;
     return false;
 }
-Food PutFood(Food f)
+Food PutFood(void)
 {
-    f = (Food)malloc(sizeof(struct _food));
+    Food f = (Food)malloc(sizeof(struct _food));
     if (f == NULL)
         FatalError("Out of space!");
     f->y = rand() % (LOWER_BONDARY - 2) + 1; /* 产生1～LOWER_BONDARY-2的数字 */

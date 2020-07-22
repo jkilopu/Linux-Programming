@@ -46,7 +46,7 @@ void start(void)
     snake = CreateSnake(DEFAULT_LENGTH, DEFAULT_BODY);
     PrintSnake(snake);
     // 放食物
-    food = PutFood(food);
+    food = PutFood();
     // 刷新
     refresh();
     // 设置信号
@@ -118,7 +118,7 @@ void DetactAndMove(int signum)
         // remove and delete food
         free(food);
         // reput food
-        food = PutFood(food);
+        food = PutFood();
         // Score increase
         if (current_record->score + 10 < SCORE_MAX)
             current_record->score += 10;

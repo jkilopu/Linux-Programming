@@ -13,6 +13,6 @@ typedef struct _food
 } * Food;
 
 bool HitFood(Snake s, Food f);
-Food PutFood(Food f);
+Food PutFood(void);
 
 #endif
