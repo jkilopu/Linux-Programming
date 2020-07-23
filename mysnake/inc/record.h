@@ -17,6 +17,6 @@ typedef struct _record {
 Record CreateRecord(char *name);
 void ShowRecord(Record r, unsigned int number, int y, int x);
 int ReadRecord(Record r, FILE *fp);
-Record FindRecord(Record rs[], int num, char name[]);
+int FindRecord(Record rs[], int num, char name[]);
 
 #endif

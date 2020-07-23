@@ -1,4 +1,5 @@
 #include "record.h"
+#include "scoreboard.h"
 #include "settings.h"
 #include "fatal.h"
 #include <ncurses.h>
@@ -33,15 +34,15 @@ void ShowRecord(Record r, unsigned int number, int y, int x)
 
 int ReadRecord(Record r, FILE *fp)
 {
-    return fscanf(fp, "%s %u", r->name, &r->score);
+    return (fp == NULL) ? EOF : fscanf(fp, "%s %u", r->name, &r->score);
 }
 
-Record FindRecord(Record rs[], int num, char name[])
+int FindRecord(Record rs[], int num, char name[])
 {
     for (int i = 0; i < num; i++)
     {
         if (strcmp(rs[i]->name, name) == 0)
-            return rs[i];
+            return i;
     }
-    return NULL;
+    return -1;
 }

@@ -3,7 +3,8 @@
 
 #include "record.h"
 
-#define RECORD_MAX_NUM 10
+#define RECORD_MAX_NUM 150
+#define SHOWED_MAX_NUM 8
 
 typedef struct __scoreboard {
     Record *records;
@@ -14,6 +15,7 @@ Scoreboard CreateScoreboard(int size);
 FILE *OpenScoreboardFile(const char *file_name);
 void ReadScoreboard(Scoreboard sc);
 unsigned int ShowScoreboardWithCurrentRecord(Scoreboard sc, Record cr, int y, int x);
+void WriteScoreboard(Scoreboard sc, Record cr, int found);
 void DestroyScoreboard(Scoreboard sc);
 
 #endif

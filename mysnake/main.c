@@ -26,19 +26,26 @@ int main(void)
 
     while ((key = getchar()) != 'q')
     {
-        if (key == 'w')
-            if (snake->y_dir != 1)
-                TurnUp(snake);
-        if (key == 's')
-            if (snake->y_dir != -1)
-                TurnDown(snake);
-        if (key == 'a')
-            if (snake->x_dir != 1)
-                TurnLeft(snake);
-        if (key == 'd')
-            if (snake->x_dir != -1)
-                TurnRight(snake);
-        sleep(100);
+        if (key == 'w' && abs(snake->y_dir) != 1)
+        {
+            TurnUp(snake);
+            sleep(100);
+        }
+        if (key == 's' && abs(snake->y_dir) != 1)
+        {
+            TurnDown(snake);
+            sleep(100);
+        }
+        if (key == 'a' && abs(snake->x_dir) != 1)
+        {
+            TurnLeft(snake);
+            sleep(100);
+        }
+        if (key == 'd' && abs(snake->x_dir) != 1)
+        {
+            TurnRight(snake);
+            sleep(100);
+        }
     }
 
     wrapup();

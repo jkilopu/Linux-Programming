@@ -25,14 +25,9 @@ void setup(void)
     clear();
 
     scoreboard = CreateScoreboard(RECORD_MAX_NUM);
-    // 读取记录
-    ReadScoreboard(scoreboard);
     // 玩家登录
     Login();
     noecho();
-    // 显示记录
-    int number = ShowScoreboardWithCurrentRecord(scoreboard, current_record, RECORD_1ST_Y, RECORD_1ST_X);
-    ShowRecord(current_record, number, RECORD_1ST_Y + scoreboard->size + 3, RECORD_1ST_X);
 
     srand(time(NULL));
     start();
@@ -40,6 +35,12 @@ void setup(void)
 
 void start(void)
 {
+    // 读取记录
+    ReadScoreboard(scoreboard);
+    // 显示记录
+    int number = ShowScoreboardWithCurrentRecord(scoreboard, current_record, RECORD_1ST_Y, RECORD_1ST_X);
+    mvaddstr(RECORD_1ST_Y + SHOWED_MAX_NUM + 2, RECORD_1ST_X, "You:");
+    ShowRecord(current_record, number, RECORD_1ST_Y + SHOWED_MAX_NUM + 3, RECORD_1ST_X);
     // 画墙
     DrawBoundary();
     // 构建、画蛇
@@ -62,7 +63,6 @@ void Login(void)
     refresh();
     getnstr(name, NAME_MAX_LENGTH + 1);
     mvaddnstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "                                              ", NAME_MAX_LENGTH + 11);
-    mvaddstr(RECORD_1ST_Y + scoreboard->size + 2, RECORD_1ST_X, "You:");
     refresh();
     current_record = CreateRecord(name);
 }
@@ -94,6 +94,8 @@ void DetactAndMove(int signum)
     if (HitBoundary(snake) || HitBody(snake))
     {
         set_ticker(0);
+        // save name-score data
+        SaveData();
         // remove food
         mvaddch(food->y, food->x, BLANK);
         // game over massage
@@ -124,18 +126,22 @@ void DetactAndMove(int signum)
             current_record->score += 10;
         // Sort and show
         int number = ShowScoreboardWithCurrentRecord(scoreboard, current_record, RECORD_1ST_Y, RECORD_1ST_X);
-        ShowRecord(current_record, number, RECORD_1ST_Y + scoreboard->size + 3, RECORD_1ST_X);
+        ShowRecord(current_record, number, RECORD_1ST_Y + SHOWED_MAX_NUM + 3, RECORD_1ST_X);
         refresh();
     }
     signal(SIGALRM, DetactAndMove);
 }
 
+void SaveData(void)
+{
+    int found = FindRecord(scoreboard->records, scoreboard->size, current_record->name);
+    WriteScoreboard(scoreboard, current_record, found);
+}
+
 void Restart(void)
 {
     current_record->score = 0;
-    int number = ShowScoreboardWithCurrentRecord(scoreboard, current_record, RECORD_1ST_Y, RECORD_1ST_X);
-    ShowRecord(current_record, number, RECORD_1ST_Y + scoreboard->size + 3, RECORD_1ST_X);
-    refresh();
+    mvaddnstr(RECORD_1ST_Y + scoreboard->size + 3, RECORD_1ST_X, "                                          ", NUM_MAX_LENGTH + NAME_MAX_LENGTH + SCORE_MAX_LENGTH + 4);
     // erase and delete snake
     EraseSnake(snake);
     DisposeSnake(snake);

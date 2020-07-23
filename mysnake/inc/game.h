@@ -7,6 +7,7 @@ int set_ticker(int n_msecs);
 void Login(void);
 void DrawBoundary(void);
 void DetactAndMove(int signum);
+void SaveData(void);
 void Restart(void);
 void wrapup(void);
 

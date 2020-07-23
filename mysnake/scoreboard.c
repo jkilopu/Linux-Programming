@@ -22,8 +22,6 @@ Scoreboard CreateScoreboard(int size)
 FILE *OpenScoreboardFile(const char *file_name)
 {
     FILE *fp = fopen(file_name, "r");
-    if (fp == NULL)
-        FatalError("Open failed");
     return fp;
 }
 
@@ -42,29 +40,61 @@ void ReadScoreboard(Scoreboard sc)
         size++;
     }
     sc->size = size;
-    fclose(fp_sc_r);
+    if (fp_sc_r != NULL)
+        fclose(fp_sc_r);
 }
 
+/* 遍历后全部重新打印 */
 unsigned int ShowScoreboardWithCurrentRecord(Scoreboard sc, Record cr, int y, int x)
 {
     bool showed = false;
-    unsigned int number = 0;
-    for (int i = 0; i < sc->size; i++)
+    unsigned int i, number = 0;
+    for (i = 0; i < sc->size; i++)
     {
         if (!showed && cr->score > sc->records[i]->score)
         {
             number = i + 1;
-            ShowRecord(cr, number, y + i, x);
+            if (i < SHOWED_MAX_NUM)
+                ShowRecord(cr, number, y + i, x);
             showed = true;
         }
-        ShowRecord(sc->records[i], i + 1 + showed, y + i + showed, x);
+        if (i + showed < SHOWED_MAX_NUM)
+            ShowRecord(sc->records[i], i + 1 + showed, y + i + showed, x);
     }
     if (!showed)
     {
-        number = sc->size + 1;
-        ShowRecord(cr, number, y + sc->size, x);
+        number = i + 1;
+        if (i < SHOWED_MAX_NUM)
+            ShowRecord(cr, number, y + i, x);
     }
     return number;
+}
+
+/* 1. 逻辑有些复杂（为了保持有序性、以及指定的一些规则）
+ * 2. 完全覆盖之前的文件内容
+ * 3. 没有加密
+ * 4. 效率还好吧(Ω(n))
+ */
+void WriteScoreboard(Scoreboard sc, Record cr, int found)
+{
+    if (sc->size > RECORD_MAX_NUM)
+        FatalError("Records are full");
+    FILE *fp_sc_w = fopen("score.txt", "w");
+    bool written = false;
+    for (int i = 0; i < sc->size; i++)
+    {
+        /* When cr is NULL(No new player highest record), do not write cr. */
+        if (!written && cr->score > sc->records[i]->score)
+        {
+            fprintf(fp_sc_w, "%s %u\n", cr->name, cr->score);
+            written = true;
+        }
+        if (i != found || cr->score <= sc->records[found]->score)
+            fprintf(fp_sc_w, "%s %u\n", sc->records[i]->name, sc->records[i]->score);
+    }
+    if (!written && found == -1)
+        fprintf(fp_sc_w, "%s %u\n", cr->name, cr->score);
+    fclose(fp_sc_w);
 }
 
 void DestroyScoreboard(Scoreboard sc)
