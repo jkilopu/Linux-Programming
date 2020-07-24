@@ -83,8 +83,8 @@ void WriteScoreboard(Scoreboard sc, Record cr, int found)
     bool written = false;
     for (int i = 0; i < sc->size; i++)
     {
-        /* When cr is NULL(No new player highest record), do not write cr. */
-        if (!written && cr->score > sc->records[i]->score)
+        /* 只写一次 && 合适的条件（原来没有记录 || 该记录比原记录大） && 合适的位置*/
+        if (!written && (found == -1 || cr->score > sc->records[found]->score ) && cr->score > sc->records[i]->score)
         {
             fprintf(fp_sc_w, "%s %u\n", cr->name, cr->score);
             written = true;
