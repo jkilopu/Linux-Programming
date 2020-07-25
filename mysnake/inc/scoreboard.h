@@ -12,7 +12,7 @@ typedef struct __scoreboard {
 } * Scoreboard;
 
 Scoreboard CreateScoreboard(int size);
-FILE *OpenScoreboardFile(const char *file_name);
+FILE *OpenScoreboardFile(void);
 void ReadScoreboard(Scoreboard sc);
 unsigned int ShowScoreboardWithCurrentRecord(Scoreboard sc, Record cr, int y, int x);
 void WriteScoreboard(Scoreboard sc, Record cr, int found);

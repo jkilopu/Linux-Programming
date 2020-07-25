@@ -19,15 +19,15 @@ Scoreboard CreateScoreboard(int size)
     return sc;
 }
 
-FILE *OpenScoreboardFile(const char *file_name)
+FILE *OpenScoreboardFile(void)
 {
-    FILE *fp = fopen(file_name, "r");
+    FILE *fp = fopen("score.txt", "r");
     return fp;
 }
 
 void ReadScoreboard(Scoreboard sc)
 {
-    FILE *fp_sc_r = OpenScoreboardFile("score.txt");;
+    FILE *fp_sc_r = OpenScoreboardFile();
     int size = 0;
     while (size < RECORD_MAX_NUM)
     {
@@ -83,7 +83,7 @@ void WriteScoreboard(Scoreboard sc, Record cr, int found)
     bool written = false;
     for (int i = 0; i < sc->size; i++)
     {
-        /* 只写一次 && 合适的条件（原来没有记录 || 该记录比原记录大） && 合适的位置*/
+        /* 只写一次 && 合适的条件（原来没有记录 || 该记录比原记录大） && 合适的位置 */
         if (!written && (found == -1 || cr->score > sc->records[found]->score ) && cr->score > sc->records[i]->score)
         {
             fprintf(fp_sc_w, "%s %u\n", cr->name, cr->score);
