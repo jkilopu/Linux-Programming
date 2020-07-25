@@ -33,6 +33,7 @@ void PrintSnake(Snake s)
         p = p->next;
     }
 }
+
 /* 只操作链表的头和尾实现蛇的移动 */
 void MoveSnake(Snake s)
 {
@@ -45,6 +46,7 @@ void MoveSnake(Snake s)
     // put cursor back
     move(LOWER_BONDARY, 0);
 }
+
 bool HitBoundary(Snake s)
 {
     if (s->list->head->y != 0 && s->list->head->y != LOWER_BONDARY - 1 && s->list->head->x != 0 && s->list->head->x != RIGHT_BONDARY - 1)
@@ -61,6 +63,15 @@ bool HitBody(Snake s)
     }
     return false;
 }
+bool OnSnake(Snake s, int y, int x)
+{
+    Node *p;
+    for (p = s->list->head; p; p = p->next)
+        if (p->y == y && p->x == x)
+            return true;
+    return false;
+}
+
 void TurnUp(Snake s)
 {
     s->y_dir = -1;
@@ -81,6 +92,7 @@ void TurnRight(Snake s)
     s->y_dir = 0;
     s->x_dir = 1;
 }
+
 void EraseSnake(Snake s)
 {
     Node *p = s->list->head;

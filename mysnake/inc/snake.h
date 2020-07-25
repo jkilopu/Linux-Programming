@@ -22,6 +22,7 @@ void PrintSnake(Snake s);
 void MoveSnake(Snake s);
 bool HitBoundary(Snake s);
 bool HitBody(Snake s);
+bool OnSnake(Snake s, int y, int x);
 void TurnUp(Snake s);
 void TurnDown(Snake s);
 void TurnLeft(Snake s);
