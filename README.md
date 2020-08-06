@@ -7,10 +7,15 @@ There are implementations of some commands, a few linux games and homework in "U
 Simple console version of the game "snake" for Linux, with scoreboard.
 ### Gameplay
 Use *w, a, s, d* to change to direction of the snake, it will move automatically. 
+
 By eating food, your snake will grow, and you will score ten points.
+
 When your snake hit the wall or its body. the game is over.
+
 Try different user names, you can see your real-time ranking on the scoreboard.
+
 Help your snake grow longer and longer, your score will be recorded in *scoreboard.txt*.
+
 ### Requirements
 * C/C++ compiler
 * ncurses library
