@@ -4,6 +4,8 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
+extern Interface interface;
+
 Snake CreateSnake(int length, char symbol)
 {
     Snake s;
@@ -44,12 +46,12 @@ void MoveSnake(Snake s)
     mvaddch(s->list->tail->y, s->list->tail->x, BLANK);
     DeleteTail(s->list);
     // put cursor back
-    move(LOWER_BONDARY, 0);
+    move(interface.lower_boundary, 0);
 }
 
 bool HitBoundary(Snake s)
 {
-    if (s->list->head->y != 0 && s->list->head->y != LOWER_BONDARY - 1 && s->list->head->x != 0 && s->list->head->x != RIGHT_BONDARY - 1)
+    if (s->list->head->y != 0 && s->list->head->y != interface.lower_boundary - 1 && s->list->head->x != 0 && s->list->head->x != interface.right_boundary - 1)
         return false;
     return true;
 }

@@ -5,6 +5,8 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
+extern Interface interface;
+
 bool HitFood(Snake s, Food f)
 {
     if (s->list->head->y == f->y && s->list->head->x == f->x)
@@ -19,8 +21,8 @@ Food PutFood(Snake s)
     int y, x;
     do
     {
-        y = rand() % (LOWER_BONDARY - 2) + 1; /* 产生1～LOWER_BONDARY-2的数字 */
-        x = rand() % (RIGHT_BONDARY - 2) + 1;
+        y = rand() % (interface.lower_boundary - 2) + 1; /* 产生1～interface.lower_boundary-2的数字 */
+        x = rand() % (interface.right_boundary - 2) + 1;
     } while (OnSnake(s, y, x));
     f->y = y, f->x = x;
     f->symbol = FOOD;

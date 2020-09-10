@@ -6,8 +6,8 @@
 
 #define NAME_MAX_LENGTH 11
 #define NUM_MAX_LENGTH 2
-#define SCORE_MAX 99999999999
-#define SCORE_MAX_LENGTH 11
+#define SCORE_MAX 99999
+#define SCORE_MAX_LENGTH 5
 
 typedef struct _record {
     char name[NAME_MAX_LENGTH + 1];

@@ -17,12 +17,14 @@ Food food;
 int key;
 Scoreboard scoreboard;
 Record current_record;
+Interface interface;
 
 void setup(void)
 {
     initscr();
     crmode();
     clear();
+    ChooseInterfaceSize();
 
     scoreboard = CreateScoreboard(RECORD_MAX_NUM);
     // 玩家登录
@@ -38,9 +40,9 @@ void start(void)
     // 读取记录
     ReadScoreboard(scoreboard);
     // 显示记录
-    int number = ShowScoreboardWithCurrentRecord(scoreboard, current_record, RECORD_1ST_Y, RECORD_1ST_X);
-    mvaddstr(RECORD_1ST_Y + SHOWED_MAX_NUM + 2, RECORD_1ST_X, "You:");
-    ShowRecord(current_record, number, RECORD_1ST_Y + SHOWED_MAX_NUM + 3, RECORD_1ST_X);
+    int number = ShowScoreboardWithCurrentRecord(scoreboard, current_record, RECORD_1ST_Y, RECORD_1ST_X(interface.right_boundary));
+    mvaddstr(RECORD_1ST_Y + SHOWED_MAX_NUM + 2, RECORD_1ST_X(interface.right_boundary), "You:");
+    ShowRecord(current_record, number, RECORD_1ST_Y + SHOWED_MAX_NUM + 3, RECORD_1ST_X(interface.right_boundary));
     // 画墙
     DrawBoundary();
     // 构建、画蛇
@@ -59,28 +61,45 @@ void start(void)
 void Login(void)
 {
     char name[NAME_MAX_LENGTH + 1];
-    mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "Your name: ");
+    mvaddstr(interface.lower_boundary / 3, interface.right_boundary / 2 - 3, "Your name: ");
     refresh();
     getnstr(name, NAME_MAX_LENGTH + 1);
-    mvaddnstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "                                              ", NAME_MAX_LENGTH + 11);
+    mvaddnstr(interface.lower_boundary / 3, interface.right_boundary / 2 - 3, "                                              ", NAME_MAX_LENGTH + 11);
     refresh();
     current_record = CreateRecord(name);
+}
+
+void ChooseInterfaceSize(void)
+{
+    int y = 0, x = 0;
+    getmaxyx(stdscr, y, x);
+    if (y < 30 || x < 30)
+    {
+        nocrmode();
+        endwin();
+        FatalError("Screen too small!");
+    }
+    /* This ratio seems ok,
+     * it leaves enough space for scoreboard 
+     */
+    interface.lower_boundary = y * INTERFACE_SCR_RATIO_Y;
+    interface.right_boundary = x * INTERFACE_SCR_RATIO_X;
 }
 
 void DrawBoundary(void)
 {
     int i;
     // 上下边
-    for (i = 0; i < RIGHT_BONDARY; i++)
+    for (i = 0; i < interface.right_boundary; i++)
     {
         mvaddch(0, i, WALL);
-        mvaddch(LOWER_BONDARY - 1, i, WALL);
+        mvaddch(interface.lower_boundary - 1, i, WALL);
     }
     // 左右边
-    for (i = 0; i < LOWER_BONDARY; i++)
+    for (i = 0; i < interface.lower_boundary; i++)
     {
         mvaddch(i, 0, WALL);
-        mvaddch(i, RIGHT_BONDARY - 1, WALL);
+        mvaddch(i, interface.right_boundary - 1, WALL);
     }
     refresh();
 }
@@ -99,17 +118,17 @@ void DetactAndMove(int signum)
         // remove food
         mvaddch(food->y, food->x, BLANK);
         // game over massage
-        mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "Game Over! ");
+        mvaddstr(interface.lower_boundary / 3, interface.right_boundary / 2 - 3, "Game Over! ");
         refresh();
         sleep(2);
-        mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "Restart?  ");
+        mvaddstr(interface.lower_boundary / 3, interface.right_boundary / 2 - 3, "Restart?  ");
         refresh();
         do
             key = getchar();
         while (key != 'r' && key != 'q');
         if (key == 'r')
         {
-            mvaddstr(LOWER_BONDARY / 3, RIGHT_BONDARY / 2 - 3, "          ");
+            mvaddstr(interface.lower_boundary / 3, interface.right_boundary / 2 - 3, "          ");
             Restart();
         }
     }
@@ -125,8 +144,8 @@ void DetactAndMove(int signum)
         if (current_record->score + 10 < SCORE_MAX)
             current_record->score += 10;
         // Sort and show
-        int number = ShowScoreboardWithCurrentRecord(scoreboard, current_record, RECORD_1ST_Y, RECORD_1ST_X);
-        ShowRecord(current_record, number, RECORD_1ST_Y + SHOWED_MAX_NUM + 3, RECORD_1ST_X);
+        int number = ShowScoreboardWithCurrentRecord(scoreboard, current_record, RECORD_1ST_Y, RECORD_1ST_X(interface.right_boundary));
+        ShowRecord(current_record, number, RECORD_1ST_Y + SHOWED_MAX_NUM + 3, RECORD_1ST_X(interface.right_boundary));
         refresh();
     }
     signal(SIGALRM, DetactAndMove);
@@ -141,7 +160,7 @@ void SaveData(void)
 void Restart(void)
 {
     current_record->score = 0;
-    mvaddnstr(RECORD_1ST_Y + scoreboard->size + 3, RECORD_1ST_X, "                                          ", NUM_MAX_LENGTH + NAME_MAX_LENGTH + SCORE_MAX_LENGTH + 4);
+    mvaddnstr(RECORD_1ST_Y + scoreboard->size + 3, RECORD_1ST_X(interface.right_boundary), "                                          ", NUM_MAX_LENGTH + NAME_MAX_LENGTH + SCORE_MAX_LENGTH + 4);
     // erase and delete snake
     EraseSnake(snake);
     DisposeSnake(snake);
@@ -154,6 +173,8 @@ void Restart(void)
 void wrapup(void)
 {
     set_ticker(0);
+    nocrmode();
+    echo();
     endwin();
     DisposeSnake(snake);
     DestroyScoreboard(scoreboard);
