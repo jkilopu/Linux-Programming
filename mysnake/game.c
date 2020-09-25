@@ -131,6 +131,11 @@ void DetactAndMove(int signum)
             mvaddstr(interface.lower_boundary / 3, interface.right_boundary / 2 - 3, "          ");
             Restart();
         }
+        else
+        {
+            wrapup();
+            exit(0);
+        }
     }
     else if (HitFood(snake, food))
     {
