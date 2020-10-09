@@ -24,5 +24,7 @@ try command like "ls -l" or "bc" etc.
 
 ## mysnake&mymines
 They are imitation of the classic games Mine and Snake.
-I had moved them to another repo: [mymine](https://github.com/jkilopu/mymines), [mysnake](https://github.com/jkilopu/mysnake).
+
+I have moved them to other repos: [mymine](https://github.com/jkilopu/mymines), [mysnake](https://github.com/jkilopu/mysnake).
+
 But their early version branches was left here.
