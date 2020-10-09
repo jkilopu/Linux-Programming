@@ -62,6 +62,7 @@ Sweep all the mines(open all the blocks which can be opened) to win!
 
 ``` bash
 git clone https://github.com/jkilopu/Linux-Programming.git
+git submodule update --init
 cd ./Linux-Programming/mymine
 mkdir build
 cd build
