@@ -1,5 +1,5 @@
 # Linux-Programming
-There are implementations of some commands,  and homework in "Understanding Unix/Linux Programming" and "CSAPP"
+There are implementations of some commands and homework in "Understanding Unix/Linux Programming" and "CSAPP"
 
 ---
 
@@ -19,3 +19,10 @@ try command like "ls -l" or "bc" etc.
 1. Do not support redirect.
 2. Do not support pipe.
 3. Do not support anything complex.
+
+---
+
+## mysnake&mymines
+They are imitation of the classic games Mine and Snake.
+I had moved them to another repo: [mymine](https://github.com/jkilopu/mymines), [mysnake](https://github.com/jkilopu/mysnake).
+But their early version branches was left here.
